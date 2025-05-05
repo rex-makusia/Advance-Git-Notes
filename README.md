@@ -18,202 +18,192 @@
 - [Troubleshooting](#troubleshooting)
 - [Advanced Workflows](#advanced-workflows)
 
+I'd be happy to provide a detailed explanation of each chapter from the Advanced Git reference notes, along with the most useful Git commands for each topic.
+
 ## Git Fundamentals
 
-### Git as a Distributed VCS
-- Each clone is a full backup of the repository
-- Commit locally without network access
-- Push/pull changes when ready to share
+**What it covers:**
+This chapter establishes the foundation of Git as a distributed version control system. It explains how Git differs from centralized systems by giving each user a complete copy of the repository. This architecture enables offline work, local commits, and flexible collaboration.
 
-### Configuration Levels
+**Key concepts:**
+- Git's distributed architecture
+- Configuration levels (local, global, system)
+- Setting up your Git identity and preferences
+- Creating useful aliases for common commands
+
+**Most useful commands:**
 ```bash
-# Local (repository-specific)
-git config --local user.name "Your Name"
+# View your current configuration
+git config --list
 
-# Global (user-specific)
-git config --global user.name "Your Name"
-
-# System (machine-wide)
-git config --system user.name "Your Name"
-```
-
-### Essential Configuration
-```bash
-# Set identity
+# Set your identity
 git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 
-# Set default branch
-git config --global init.defaultBranch main
-
-# Configure editor  
-git config --global core.editor "code --wait"
-
-# Set up diff and merge tools
-git config --global diff.tool vscode
-git config --global merge.tool vscode
-```
-
-### Useful Aliases
-```bash
+# Create time-saving aliases
 git config --global alias.co checkout
 git config --global alias.br branch
 git config --global alias.ci commit
 git config --global alias.st status
-git config --global alias.lg "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative"
+git config --global alias.lg "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'"
+
+# Set default branch name
+git config --global init.defaultBranch main
+
+# Configure diff and merge tools
+git config --global core.editor "code --wait"
+git config --global diff.tool vscode
 ```
 
 ## Git Object Model
 
-### Core Object Types
-- **Blob**: Content of a file (no metadata)
-- **Tree**: Directory listing, pointers to blobs and other trees
-- **Commit**: Snapshot of the repo (points to tree and parent commits)
-- **Tag**: Reference to a specific commit (for versioning)
+**What it covers:**
+This chapter delves into Git's internal data structure—how Git actually stores your project's history. Understanding the object model helps you grasp what's happening behind the scenes with every Git command and troubleshoot complex issues.
 
-### Hash IDs
-- SHA-1 hash of object contents and headers
-- Guarantees data integrity
-- First few characters often used as shorthand (7+ characters)
+**Key concepts:**
+- The four core object types: blobs, trees, commits, and tags
+- How Git uses SHA-1 hashes to identify objects
+- How objects are stored and compressed
+- The relationship between these objects
 
-### Viewing Objects
+**Most useful commands:**
 ```bash
-# Examine object content
+# View the content of any Git object
 git cat-file -p <hash>
 
-# Determine object type
+# Determine the type of a Git object
 git cat-file -t <hash>
 
-# List objects in packfile
-git verify-pack -v .git/objects/pack/*.pack
-```
+# List contents of a tree object
+git ls-tree <tree-hash>
 
-### Object Storage
-- Loose objects: Individual files in `.git/objects/`
-- Packed objects: Compressed in `.git/objects/pack/`
-- Git garbage collection: `git gc` compresses loose objects
+# Show commit history with file changes
+git log --stat
+
+# Show a specific commit
+git show <commit-hash>
+
+# Explore packfiles
+git verify-pack -v .git/objects/pack/*.pack
+
+# Manually trigger garbage collection
+git gc
+```
 
 ## References and Refspecs
 
-### References
-- Branches: Pointers to commits (stored in `.git/refs/heads/`)
-- Tags: Named pointers (stored in `.git/refs/tags/`)
-- Remote branches: Bookmarks of remote state (`.git/refs/remotes/`)
-- HEAD: Reference to current commit (`.git/HEAD`)
+**What it covers:**
+This chapter explains how Git uses references (refs) to provide human-readable names for SHA-1 hashes. It covers branches, tags, remote references, and special references like HEAD. It also explains refspecs, which determine how references are mapped between repositories during fetch/push operations.
 
-### Special References
-- `HEAD`: Current commit/branch
-- `HEAD~n`: nth ancestor of HEAD
-- `HEAD^n`: nth parent of HEAD (for merge commits)
-- `@{upstream}` or `@{u}`: Upstream branch
-- `@{-n}`: nth previously checked out branch
+**Key concepts:**
+- How branches and tags work as pointers to commits
+- Special reference notations (HEAD~n, HEAD^n)
+- Remote tracking branches 
+- Refspecs for customizing push/fetch behavior
 
-### Refspecs
-- Mapping between remote and local refs
-- Format: `<src>:<dst>`
-
+**Most useful commands:**
 ```bash
-# Push local main to remote feature branch
-git push origin main:feature
-
-# Delete remote branch
-git push origin :feature
-
-# Track specific remote branch
-git checkout -b feature origin/feature
-# or
-git branch --track feature origin/feature
-```
-
-### Reference Lists
-```bash
-# List all references
+# List all references in the repository
 git show-ref
 
-# List symbolic references
+# Display where HEAD points
 git symbolic-ref HEAD
+
+# Push a local branch to a differently named remote branch
+git push origin local-branch:remote-branch
+
+# Delete a remote branch
+git push origin :branch-to-delete
+# or
+git push origin --delete branch-to-delete
+
+# Set up tracking relationship with remote branch
+git branch --set-upstream-to=origin/main main
+
+# Create a branch that tracks a remote branch
+git checkout -b feature origin/feature
+
+# Fetch a specific branch from remote
+git fetch origin feature:refs/remotes/origin/feature
 ```
 
 ## The Index
 
-### Understanding the Staging Area
-- Sits between working directory and repository
-- Contains planned snapshot for next commit
-- Stored in `.git/index`
+**What it covers:**
+This chapter focuses on Git's staging area (the index), which sits between your working directory and the repository. Understanding the index is crucial for controlling exactly what goes into each commit and for advanced operations.
 
-### Index Operations
+**Key concepts:**
+- How the index acts as a middle ground between working directory and repository
+- Staging entire files vs. parts of files
+- Manipulating the index directly
+- Comparing differences between working directory, index, and HEAD
+
+**Most useful commands:**
 ```bash
-# Add files to index
-git add <file>
-git add -p  # Interactive staging
+# Add specific parts of a file to the index
+git add -p [file]
 
-# See what's in the index vs HEAD
-git diff --cached
-
-# See what's not staged yet
-git diff
-
-# Remove from index but keep in working copy
-git rm --cached <file>
-
-# Update index with file modification time without checking content
-git update-index --assume-unchanged <file>
-
-# Reset index but not working directory
-git reset
-```
-
-### Advanced Index Features
-```bash
-# Stage hunks interactively
+# Interactive staging for selecting files and hunks
 git add -i
 
-# Split hunks during staging
-git add -p  # then use 's' option
+# Compare working directory to index
+git diff
 
-# Apply stashed index
-git stash apply --index
+# Compare index to last commit (HEAD)
+git diff --cached
+
+# Remove file from index but keep in working directory
+git rm --cached [file]
+
+# Temporarily mark a file as unchanged even if it changes
+git update-index --assume-unchanged [file]
+
+# Reset index but preserve working directory changes
+git reset
 ```
 
 ## Stashing
 
-### Basic Stashing
+**What it covers:**
+This chapter explains Git's stash feature, which allows you to temporarily store uncommitted changes when you need to switch contexts. Stashing is especially useful when you need to handle interruptions in your workflow without committing incomplete work.
+
+**Key concepts:**
+- Basic stashing and applying stashes
+- Named stashes for organization
+- Stashing specific files or parts of files
+- Creating branches from stashes
+
+**Most useful commands:**
 ```bash
-# Stash changes
+# Save current changes to stash
 git stash
 
-# Apply and drop most recent stash
+# Save with descriptive message
+git stash save "WIP: feature implementation"
+
+# Include untracked files in stash
+git stash -u
+
+# Stash specific files only
+git stash push path/to/file1 path/to/file2
+
+# Apply most recent stash and remove it from stash list
 git stash pop
 
-# Apply but keep stash entry
-git stash apply
+# Apply specific stash without removing it
+git stash apply stash@{2}
+
+# View stash contents
+git stash show -p stash@{1}
+
+# Create a branch from a stash
+git stash branch new-branch stash@{1}
+
+# Interactively select parts to stash
+git stash -p
 
 # List all stashes
 git stash list
-```
-
-### Advanced Stashing
-```bash
-# Create a named stash
-git stash save "WIP: feature X implementation"
-
-# Stash untracked files too
-git stash -u
-
-# Stash specific files
-git stash push <path>
-
-# Apply specific stash
-git stash apply stash@{2}
-
-# Show stash contents
-git stash show -p stash@{1}
-
-# Create a branch from stash
-git stash branch feature-branch stash@{1}
-
-# Interactive stashing
-git stash -p
 
 # Clear all stashes
 git stash clear
@@ -221,415 +211,398 @@ git stash clear
 
 ## Rebasing
 
-### Basic Rebasing
+**What it covers:**
+This chapter covers rebasing, a powerful technique for integrating changes from one branch to another by replaying commits. Rebasing creates a cleaner project history compared to merging but requires careful use, especially with shared branches.
+
+**Key concepts:**
+- Basic rebasing workflow
+- Interactive rebasing for history cleanup
+- Resolving conflicts during rebasing
+- The "golden rule" of rebasing (don't rebase published history)
+- Advanced rebasing techniques like rebasing onto different branches
+
+**Most useful commands:**
 ```bash
 # Rebase current branch onto main
 git rebase main
 
-# Continue after resolving conflicts
+# Interactive rebase for editing, reordering, squashing commits
+git rebase -i HEAD~5  # Last 5 commits
+
+# During conflict resolution
 git rebase --continue
-
-# Skip current commit during rebase
 git rebase --skip
-
-# Abort rebase
 git rebase --abort
-```
 
-### Interactive Rebasing
-```bash
-# Last 3 commits
-git rebase -i HEAD~3
-
-# Actions:
-# p, pick = use commit
-# r, reword = use commit, but edit the commit message
-# e, edit = use commit, but stop for amending
-# s, squash = use commit, but meld into previous commit
-# f, fixup = like "squash", but discard this commit's log message
-# d, drop = remove commit
-# x, exec = run command (the rest of the line) using shell
-```
-
-### Auto-squashing
-```bash
-# Mark commit for squashing in a future rebase
-git commit --fixup=<commit>
-git commit --squash=<commit>
-
-# Rebase with autosquash
+# Auto-squash related commits
+git commit --fixup=<commit-hash>
 git rebase -i --autosquash <base>
-```
 
-### Changing Base
-```bash
-# Move entire feature branch to new base
-git rebase --onto new-base old-base feature-branch
+# Move a branch to a new base
+git rebase --onto new-base old-base branch-to-move
 ```
 
 ## Cherry-picking
 
-### Basic Cherry-picking
+**What it covers:**
+This chapter explains cherry-picking, which allows you to apply specific commits from one branch to another. This is useful when you want to selectively apply changes rather than merging or rebasing entire branches.
+
+**Key concepts:**
+- Selecting and applying individual commits
+- Handling conflicts during cherry-picking
+- Tracking cherry-picked commits
+- Cherry-picking ranges of commits
+
+**Most useful commands:**
 ```bash
 # Apply a single commit to current branch
 git cherry-pick <commit-hash>
 
-# Cherry-pick a range of commits
-git cherry-pick A..B  # applies commits after A up to and including B
-```
+# Apply multiple commits
+git cherry-pick <commit1> <commit2>
 
-### Advanced Cherry-picking
-```bash
-# Cherry-pick but don't commit
+# Apply a range of commits
+git cherry-pick <start-commit>..<end-commit>
+
+# Cherry-pick without automatically committing
 git cherry-pick --no-commit <commit-hash>
 
-# Keep original authorship information
+# Preserve original authorship information
 git cherry-pick -x <commit-hash>
 
-# Sign cherry-picked commit
+# Sign the cherry-picked commit
 git cherry-pick -S <commit-hash>
 
-# Continue after resolving conflicts
+# Handle cherry-pick conflicts
 git cherry-pick --continue
-
-# Abort cherry-pick
 git cherry-pick --abort
 ```
 
 ## Reset and Checkout
 
-### Reset Types
+**What it covers:**
+This chapter explains the differences between reset and checkout, two commonly confused Git commands. Understanding these commands is crucial for manipulating the working directory, the index, and branch pointers safely.
+
+**Key concepts:**
+- Three reset modes: soft, mixed, and hard
+- How reset moves branch pointers
+- How checkout moves HEAD itself
+- Path-specific vs. commit-level operations
+- Safety considerations for each operation
+
+**Most useful commands:**
 ```bash
-# Soft reset - move HEAD but leave index and working directory
+# Soft reset - move branch pointer but keep changes staged
 git reset --soft HEAD~1
 
-# Mixed reset (default) - move HEAD and update index
+# Mixed reset (default) - move branch pointer and unstage changes
 git reset HEAD~1
-git reset --mixed HEAD~1  # same as above
 
-# Hard reset - move HEAD, update index and working directory
+# Hard reset - discard all changes
 git reset --hard HEAD~1
-```
 
-### Checkout vs Reset
-- Checkout is focused on updating working directory
-- Reset is focused on moving branch pointers
+# Reset a specific file to HEAD version
+git reset -- path/to/file
 
-```bash
-# Reset moves the branch that HEAD points to
-git reset <commit>
+# Reset a specific file to a specific commit version
+git reset <commit> -- path/to/file
 
-# Checkout moves HEAD itself
+# Checkout a file from HEAD (discard changes)
+git checkout -- path/to/file
+
+# Checkout a file from a specific commit
+git checkout <commit> -- path/to/file
+
+# Checkout a specific commit (detached HEAD)
 git checkout <commit>
-```
-
-### Path-specific Operations
-```bash
-# Reset specific file to HEAD
-git reset -- <file>
-
-# Reset specific file to specific commit
-git reset <commit> -- <file>
-
-# Checkout specific file from HEAD
-git checkout -- <file>
-
-# Checkout specific file from specific commit
-git checkout <commit> -- <file>
 ```
 
 ## Merge Strategies
 
-### Basic Merge
+**What it covers:**
+This chapter explores Git's various merge strategies and options that control how changes from different branches are combined. Understanding these strategies helps you manage complex integrations and resolve conflicts effectively.
+
+**Key concepts:**
+- Fast-forward vs. non-fast-forward merges
+- Different merge strategies (recursive, resolve, octopus, etc.)
+- Merge strategy options (ours, theirs, patience)
+- Handling and resolving merge conflicts
+- Using merge tools
+
+**Most useful commands:**
 ```bash
-# Regular merge (creates merge commit)
+# Default merge (with merge commit)
 git merge feature-branch
-```
 
-### Fast-forward Merge
-```bash
-# Fast-forward when possible
-git merge --ff feature-branch  # default behavior
+# Fast-forward only if possible, abort otherwise
+git merge --ff-only feature-branch
 
-# Prevent fast-forward (always create merge commit)
+# Always create a merge commit, even for fast-forward
 git merge --no-ff feature-branch
 
-# Only merge if fast-forward is possible
-git merge --ff-only feature-branch
-```
+# Favor our version in conflicts
+git merge -X ours feature-branch
 
-### Advanced Merge Strategies
-```bash
-# Resolve strategy
-git merge -s resolve branch
+# Favor their version in conflicts
+git merge -X theirs feature-branch
 
-# Recursive strategy (default)
-git merge -s recursive branch
+# Use custom merge strategy
+git merge -s recursive feature-branch
 
-# Recursive with preference for ours/theirs
-git merge -X ours branch
-git merge -X theirs branch
-
-# Octopus strategy (for more than two branches)
+# Merge multiple branches at once
 git merge branch1 branch2 branch3
 
-# Ours strategy (discard all changes from other branches)
-git merge -s ours branch
+# Abort a merge in progress
+git merge --abort
 
-# Subtree merge
-git merge -s subtree --no-commit project-branch
-```
-
-### Merge Tools
-```bash
-# Invoke merge tool for conflicts
+# Launch configured merge tool for conflict resolution
 git mergetool
-
-# Configure specific tool
-git config --global merge.tool <tool>
 ```
 
 ## Hooks
 
-### Common Hooks
-- **pre-commit**: Run before commit is created
-- **prepare-commit-msg**: Edit auto-generated commit message
-- **commit-msg**: Validate commit message format
-- **post-commit**: Notification after commit
-- **pre-push**: Run before pushing to remote
-- **post-checkout**: Run after checking out branch
-- **pre-rebase**: Run before rebase
+**What it covers:**
+This chapter explains Git hooks, which are scripts that Git executes before or after events like commits, pushes, and merges. Hooks can automate tasks, enforce standards, and integrate with other tools in your workflow.
 
-### Setting Up Hooks
+**Key concepts:**
+- Client-side vs. server-side hooks
+- Common hook types and their use cases
+- Sample hook implementations
+- Sharing hooks with your team
+- Bypassing hooks when needed
+
+**Most useful commands:**
 ```bash
-# Hooks are stored in .git/hooks
-# Make hooks executable
+# Make a hook executable
 chmod +x .git/hooks/pre-commit
 
-# Use repository-tracked hooks
+# Use team-shared hooks
 git config core.hooksPath .githooks/
-```
 
-### Sample pre-commit Hook
-```bash
-#!/bin/sh
+# Bypass pre-commit and pre-push hooks
+git commit --no-verify
+git push --no-verify
 
-# Check for trailing whitespace
-if git diff --cached --check | grep -E '\s+$'; then
-  echo "Error: Trailing whitespace found in staged changes"
-  exit 1
-fi
+# List available sample hooks
+ls -la .git/hooks/
 
-# Run tests
-npm test
-if [ $? -ne 0 ]; then
-  echo "Error: Tests failed, commit aborted"
-  exit 1
-fi
-
-exit 0
+# Run hook manually for testing
+sh .git/hooks/pre-commit
 ```
 
 ## Rewriting History
 
-### Amending Commits
+**What it covers:**
+This chapter covers techniques for modifying Git history, from simple commit amendments to complex history rewrites. These tools are powerful but require care, especially with shared repositories, as they change commit hashes.
+
+**Key concepts:**
+- When and why to rewrite history
+- Simple vs. complex history edits
+- Tools for history rewriting (amend, rebase, filter-branch)
+- Force pushing and its risks
+- Best practices for safe history modification
+
+**Most useful commands:**
 ```bash
-# Change last commit message
+# Change the last commit message
 git commit --amend
 
-# Add files to last commit without changing message
+# Add files to the last commit without changing message
 git commit --amend --no-edit
 
 # Change author of last commit
 git commit --amend --author="New Name <new.email@example.com>"
-```
 
-### Filter-branch
-```bash
-# Remove file from entire history
-git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch path/to/file' --prune-empty --tag-name-filter cat -- --all
+# Remove a file from entire history
+git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch path/to/file' --prune-empty -- --all
 
 # Change email in all commits
-git filter-branch --commit-filter 'if [ "$GIT_AUTHOR_EMAIL" = "old@example.com" ]; then export GIT_AUTHOR_NAME="New Name"; export GIT_AUTHOR_EMAIL="new@example.com"; fi; git commit-tree "$@"' HEAD
-```
+git filter-branch --env-filter '
+    if [ "$GIT_AUTHOR_EMAIL" = "old@example.com" ]
+    then
+        export GIT_AUTHOR_EMAIL="new@example.com"
+    fi
+'
 
-### BFG Repo Cleaner
-```bash
-# Remove big files (requires java)
-java -jar bfg.jar --strip-blobs-bigger-than 10M repo.git
+# Force push changed history (use with extreme caution)
+git push --force origin branch-name
 
-# Remove sensitive data
-java -jar bfg.jar --replace-text passwords.txt repo.git
-```
-
-### Rewriting Published History
-```bash
-# Push rewritten history (use with caution!)
-git push --force origin main
-
-# Safer force push
-git push --force-with-lease origin main
+# Safer force push (aborts if remote has changes you don't have)
+git push --force-with-lease origin branch-name
 ```
 
 ## Submodules and Subtrees
 
-### Submodules
+**What it covers:**
+This chapter explains Git's approaches to managing external dependencies: submodules and subtrees. These features allow you to include other repositories within your project while maintaining separation or integration as needed.
+
+**Key concepts:**
+- Submodules as references to specific commits in external repos
+- Subtrees as copied content integrated into your repo
+- When to use each approach
+- Common workflows for both approaches
+- Advantages and disadvantages of each
+
+**Most useful commands:**
 ```bash
-# Add submodule
+# Submodules
+# Add a submodule
 git submodule add https://github.com/user/repo.git path/to/submodule
 
-# Initialize and update submodules after cloning
+# Clone a repo with submodules
+git clone --recursive https://github.com/user/repo.git
+
+# Initialize submodules after standard clone
 git submodule update --init --recursive
 
-# Update all submodules to latest
+# Update submodules to latest remote version
 git submodule update --remote
 
-# Execute command in each submodule
+# Execute command in all submodules
 git submodule foreach 'git checkout main && git pull'
-```
 
-### Subtrees
-```bash
-# Add subtree
+# Subtrees
+# Add a subtree
 git subtree add --prefix=path/to/subtree https://github.com/user/repo.git main --squash
 
-# Update subtree
+# Update subtree from upstream
 git subtree pull --prefix=path/to/subtree https://github.com/user/repo.git main --squash
 
-# Push changes to subtree upstream
+# Push subtree changes back to its origin
 git subtree push --prefix=path/to/subtree https://github.com/user/repo.git main
 ```
 
-### Comparison
-- **Submodules**: Reference specific commit in external repo
-- **Subtrees**: Copy content into main repo
-
 ## Worktrees
 
-### Multiple Working Directories
+**What it covers:**
+This chapter explains Git worktrees, which allow you to check out multiple branches simultaneously in different directories. This feature is particularly useful for working on multiple tasks concurrently without stashing or committing incomplete work.
+
+**Key concepts:**
+- Creating and managing multiple working directories
+- Linking worktrees to the main repository
+- Common worktree workflows
+- Benefits over traditional branch switching
+- Limitations and best practices
+
+**Most useful commands:**
 ```bash
-# Create new worktree
+# Create a new worktree with existing branch
 git worktree add ../path/to/worktree branch-name
 
-# Create worktree with new branch
+# Create a new worktree with new branch
 git worktree add -b new-branch ../path/to/worktree
 
-# List worktrees
+# List all linked worktrees
 git worktree list
 
-# Remove worktree
+# Remove a worktree
 git worktree remove ../path/to/worktree
 
-# Prune worktree information
+# Prune information for removed worktrees
 git worktree prune
-```
 
-### Use Cases
-- Working on multiple branches simultaneously
-- Running builds/tests on different branches
-- Making hotfixes while working on features
+# Move a worktree to a new location
+git worktree move old/path new/path
+```
 
 ## Troubleshooting
 
-### Debugging Tools
-```bash
-# Show objects and references
-git show-ref
+**What it covers:**
+This chapter provides tools and techniques for diagnosing and solving problems in Git repositories. It covers strategies for recovering lost work, identifying bugs, and maintaining repository health.
 
-# Check reflog history
+**Key concepts:**
+- Debugging tools (reflog, bisect, fsck)
+- Recovering from common mistakes
+- Finding when bugs were introduced
+- Repository maintenance
+- Data recovery techniques
+
+**Most useful commands:**
+```bash
+# View history of HEAD movements (useful for recovery)
 git reflog
 
-# Examine file history
-git log -p -- path/to/file
-
-# Find commit that introduced a bug
+# Find which commit introduced a bug
 git bisect start
-git bisect bad  # current version is bad
-git bisect good v1.0  # v1.0 is known to be good
-# Git checks out middle commit
+git bisect bad  # current version has the bug
+git bisect good v1.0  # this version was known to work
+# Git checks out a commit halfway between
 # Test and mark as good or bad
 git bisect good  # or git bisect bad
-# Continue until git identifies the first bad commit
-git bisect reset  # return to original HEAD
-```
+# Continue until Git identifies the first bad commit
+git bisect reset  # return to original state
 
-### Recovering Lost Work
-```bash
-# Recover lost commits (after reset --hard)
-git reflog
-git checkout <hash>
-
-# Recover uncommitted changes
+# Recover uncommitted changes after hard reset
 git fsck --lost-found
 
-# Recover stashes
-git fsck --no-reflog | grep commit | cut -d ' ' -f 3 | xargs git show
-```
-
-### Repository Maintenance
-```bash
-# Verify repository integrity
+# Verify integrity of Git database
 git fsck
 
-# Clean up and optimize repository
+# Optimize repository storage
 git gc
 
-# Aggressively optimize repository
+# Deep repository optimization (slow but thorough)
 git gc --aggressive
 
-# Prune unreachable objects
-git prune
+# Find unreferenced objects
+git prune --dry-run
 
-# Count objects in repository
+# Check repository size and statistics
 git count-objects -v
 ```
 
 ## Advanced Workflows
 
-### Feature Branch Workflow
-1. Create feature branch from main
-2. Make changes and commit
-3. Push branch to remote
-4. Create Pull Request
-5. Review, discuss, and refine
-6. Merge or rebase
+**What it covers:**
+This chapter explores different Git branching strategies and workflows used by teams. Understanding these patterns helps you choose and implement the right workflow for your project's needs.
 
-### Git Flow
-- **main**: Production code
-- **develop**: Integration branch
-- **feature/***: New features
-- **release/***: Preparing for release
-- **hotfix/***: Emergency fixes for production
+**Key concepts:**
+- Feature branch workflow
+- Git Flow (feature/develop/release/hotfix branches)
+- GitHub Flow (simplified branch and PR workflow)
+- Trunk-based development
+- Monorepo strategies
+- Choosing the right workflow for your team
 
+**Most useful commands:**
 ```bash
-# With git-flow extension
+# Feature Branch Workflow
+git checkout -b feature/new-feature
+git push -u origin feature/new-feature
+# After PR approval:
+git checkout main
+git pull
+git merge feature/new-feature
+git push
+
+# Git Flow (with extension)
 git flow init
-git flow feature start feature-name
-git flow feature finish feature-name
-```
+git flow feature start new-feature
+git flow feature finish new-feature
+git flow release start 1.0
+git flow release finish 1.0
+git flow hotfix start critical-fix
+git flow hotfix finish critical-fix
 
-### GitHub Flow
-1. Branch from main
-2. Make changes and commit
-3. Open Pull Request
-4. Discuss and review
-5. Deploy and test
-6. Merge to main
+# GitHub Flow
+git checkout -b feature-branch
+# Work, commit, push
+# Create PR via GitHub UI
+# After merging PR:
+git checkout main
+git pull
 
-### Trunk-Based Development
-- Short-lived feature branches
-- Frequent integration to main
-- Feature flags for incomplete features
-- Emphasis on CI/CD
+# Trunk-Based Development
+git checkout -b small-feature
+# Work quickly, get reviewed, merge to main frequently
+git checkout main
+git pull
+git merge small-feature
+git push
 
-### Monorepo Strategies
-```bash
-# Use sparse checkout
+# Monorepo sparse checkout
 git clone --no-checkout repo-url
 cd repo
 git sparse-checkout set dir1 dir2
-git checkout
-
-# Use partial clone
-git clone --filter=blob:none repo-url
+git checkout main
 ```
