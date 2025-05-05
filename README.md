@@ -18,8 +18,6 @@
 - [Troubleshooting](#troubleshooting)
 - [Advanced Workflows](#advanced-workflows)
 
-I'd be happy to provide a detailed explanation of each chapter from the Advanced Git reference notes, along with the most useful Git commands for each topic.
-
 ## Git Fundamentals
 
 **What it covers:**
